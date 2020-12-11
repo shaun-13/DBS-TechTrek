@@ -6,10 +6,16 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./transfer.component.css']
 })
 export class TransferComponent implements OnInit {
-
+  payee?: string;
+  amount?: string;
   constructor() { }
 
   ngOnInit(): void {
+  }
+
+  addTodo(){
+    console.log(this.payee);
+    console.log(this.amount);
   }
 
 }
