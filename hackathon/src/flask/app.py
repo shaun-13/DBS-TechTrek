@@ -10,11 +10,16 @@ API_KEY = "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
 ### API Responses
 ###
 
+
 def get_response(status, data):
     return {
         "status": status,
         "data": data
     }
+
+###
+### Login API
+###
 
 
 @app.route("/login", methods=["POST"])
@@ -40,7 +45,11 @@ def login():
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
     return response.text
-    
+
+###
+### Retrieve User's Balanace API
+###
+
 @app.route("/balance/<custID>")
 def get_balance(custID):
     API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/accounts/view"
@@ -93,7 +102,13 @@ def _call_add_transaction_API(**kwargs):
         'x-api-key': API_KEY,
         'Content-Type': 'application/json'
     }
+
+    # Do type casting because it is necessary apparently...?
     body = kwargs
+    body["custID"] = int(body["custID"])
+    body["payeeID"] = int(body["payeeID"])
+    body["dateTime"] = str(body["dateTime"])
+    body["amount"] = int(body["amount"])
 
     response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
     response.headers['Access-Control-Allow-Origin'] = '*'
