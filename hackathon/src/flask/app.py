@@ -25,9 +25,9 @@ def get_response(status, data):
 @app.route("/login", methods=["POST"])
 def login():
     if not (request.method == "POST"):
-        return 400
+        return get_response(400, "Invalid HTTP verb.")
 
-    login_data = request.json
+    login_data = json.loads(request.data)
     username = login_data['username']
     password = login_data['password']
 
@@ -44,7 +44,9 @@ def login():
     }
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
-    return response.text
+    if (response.status_code == 403) :
+        return (get_response(403, "Invalid login credentials."))
+    return get_response(200, response.text)
 
 ###
 ### Retrieve User's Balanace API
@@ -62,7 +64,9 @@ def get_balance(custID):
     }
 
     response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
-    return response.text
+    if (response.status_code == 400):
+        return get_response(400, "Invalid custID.")
+    return get_response(200, response.text)
 
 
 ###
