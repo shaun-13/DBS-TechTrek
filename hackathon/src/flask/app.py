@@ -128,7 +128,7 @@ def make_payment(myID, payeeID, amount, msg=""):
         return get_response(500, "Unsuccessful transaction")
 
     # Lastly, create a transaction for both parties
-    today = date.today()s
+    today = date.today()
     _call_add_transaction_API(
         custID=myID,
         payeeID=payeeID,
@@ -156,7 +156,7 @@ def make_payment(myID, payeeID, amount, msg=""):
         "amount": amount
     }
 
-    return get_response(200, transaction_data)
+    return get_response(200, json.dumps(transaction_data))
 
 
 if __name__=='__main__':
