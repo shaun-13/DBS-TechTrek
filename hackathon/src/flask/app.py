@@ -120,27 +120,37 @@ def _call_add_transaction_API(**kwargs):
 
 
 @app.route("/pay/<myID>/<payeeID>/<amount>")
-@app.route("/pay/<myID>/<payeeID>/<amount>/<msg>")
 def make_payment(myID, payeeID, amount, msg=""):
-    my_accounts = json.loads(get_balance(int(myID)))
+    response = get_balance(myID)
+    
+    if (response['status'] != 200):
+        get_response(400, "Invalid Payer ID") 
+
+    my_accounts = json.loads(response['data'])
     my_linked_account = _get_linked_accounts(my_accounts)
     my_original_balance = my_linked_account.get("availableBal")
     my_new_balance = my_linked_account.get("availableBal") - int(amount)
+    print(f"AAAAAAAA {my_original_balance}, {amount}, {my_new_balance}")
 
     # Return response if there is not enough money
     if my_new_balance < 0:
         return get_response(400, "Not Enough Money")
 
     # To payee
-    payee_accounts = json.loads(get_balance(int(payeeID)))
+    response = get_balance(payeeID)
+    
+    if (response['status'] != 200):
+        get_response(400, "Invalid Payee ID") 
+
+    payee_accounts = json.loads(response['data'])
     payee_linked_account = _get_linked_accounts(payee_accounts)
     payee_new_balance = payee_linked_account.get("availableBal") + int(amount)
 
-    response = _call_update_API(payeeID, payee_new_balance)
+    response = _call_update_API(myID, my_new_balance)
     if response.text != 'Successful transaction.':
         return get_response(500, "Unsuccessful transaction")
 
-    response = _call_update_API(myID, my_new_balance)
+    response = _call_update_API(payeeID, payee_new_balance)
     if response.text != 'Successful transaction.':
         # Revert to give the money back:
         _call_update_API(myID, my_original_balance)
@@ -159,10 +169,10 @@ def make_payment(myID, payeeID, amount, msg=""):
     )
 
     _call_add_transaction_API(
-        custID=myID,
-        payeeID=payeeID,
+        custID=payeeID,
+        payeeID=myID,
         dateTime=today,
-        amount=amount,
+        amount=f"-{amount}",
         expensesCat="",
         eGift=False,
         message=msg
