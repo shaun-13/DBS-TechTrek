@@ -1,9 +1,20 @@
 from flask import Flask, make_response, jsonify, request, json
 import requests
+from datetime import date
 
 app = Flask(__name__)
 
 API_KEY = "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
+
+###
+### API Responses
+###
+
+def get_response(status, data): {
+    "status": status, 
+    "data": data
+}
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -42,7 +53,108 @@ def get_balance(custID):
     response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
     return response.text
 
+
+###
+### Payment method
+###
+
+def _get_linked_accounts(accounts):
+    # Assume there is only one linked account...?
+    linked_account = None
+
+    for account in accounts:
+        if bool(account.get("linked", 'false')):
+            linked_account = account
+
+    return linked_account
+
+
+def _call_balance_API(custID, new_amount):
+    API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/accounts/update"
+    headers = {
+        "x-api-key": API_KEY
+    }
+    body = {
+        'custID': custID,
+        'Amount': new_amount
+    }
+
+    response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+
+def _call_add_transaction_API(**kwargs):
+    API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/transaction/add"
+    headers = {
+        "x-api-key": API_KEY
+    }
+    body = kwargs
+
+    response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+
+@app.route("/pay/<myID>/<payeeID>/<amount>")
+def make_payment(myID, payeeID, amount, msg):
+    my_accounts = get_balance(myID)
+    my_linked_account = _get_linked_accounts(my_accounts)
+    my_original_balance = my_linked_account.get("availableBal")
+    my_new_balance = my_linked_account.get("availableBal") - amount
+
+    # Return response if there is not enough money
+    if my_new_balance < 0:
+        return get_response(400, "Not Enough Money")
+
+    # To paye
+    payee_accounts = get_balance(payeeID)
+    payee_linked_account = _get_linked_accounts(payee_accounts)
+    payee_new_balance = payee_linked_account.get("availableBal") + amount
+
+    response = _call_balance_API(payeeID, payee_new_balance) 
+    if response.text != 'Successful transaction.':
+        return get_response(500, "Unsuccessful transaction")
+
+    response = _call_balance_API(myID, my_new_balance)
+    if response.text != 'Successful transaction.':
+
+        # Revert to give the money back:
+        _call_balance_API(myID, my_original_balance)  
+        return get_response(500, "Unsuccessful transaction")
+
+    # Lastly, create a transaction for both parties
+    today = date.today
+    response = _call_add_transaction_API(
+        custID=myID,
+        payeeID=payeeID,
+        dateTime=today,
+        amount=amount,
+        expensesCat="",
+        eGift=False,
+        message=msg
+    )
+
+    response = _call_add_transaction_API(
+        custID=myID,
+        payeeID=payeeID,
+        dateTime=today,
+        amount=amount,
+        expensesCat="",
+        eGift=False,
+        message=msg
+    )
+
+    transaction_data = {
+        "custID": myID,
+        "payeeID": payeeID,
+        "dateTime": today,
+        "amount": amount
+    }
+
+    return get_response(200, transaction_data)
+
+
 if __name__=='__main__':
     app.run(port=5002, debug=True)
     app.run()
-    
