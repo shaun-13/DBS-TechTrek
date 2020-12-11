@@ -1,9 +1,14 @@
-
-To: <input type="text" name="payee" id="payee" [(ngModel)]="payee" [value]="payee" placeholder="Enter recipient"
-class="form-control">
-
+<div class="container">
+To: <input type="text" name="payee" id="payee" [(ngModel)]="payeeID" [value]="payeeID" placeholder="Enter recipient"
+class="form-control" required>
 Amount: <input type="text" name="amount" id="amount" [(ngModel)]="amount" [value]="amount" placeholder="Enter amount"
+class="form-control"required>
+Message: <input type="text" name="message" id="message" [(ngModel)]="message" [value]="message" placeholder="Enter Messgae"
 class="form-control">
 
-<button class="btn" (click)="addTodo()">Transfer</button>
-<p>transfer works!</p>
+eGift:
+
+
+
+<button type="button" class="btn btn-outline-primary" (click)="addTodo()">Transfer</button>
+</div>
