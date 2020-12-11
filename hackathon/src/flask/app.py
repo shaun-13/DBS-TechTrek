@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-# API_KEY = ""
+API_KEY = "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
 
 # @app.route("/findPlaceFromText/<input_location>")
 # def findPlaceFromText(input_location):
@@ -56,7 +56,9 @@ app = Flask(__name__)
 #     response = make_response(response.url)
 #     response.headers['Access-Control-Allow-Origin'] = '*'
 #     return response
+    
 
 if __name__=='__main__':
     app.run(port=5002, debug=True)
-    # app.run()
+    app.run()
+    
