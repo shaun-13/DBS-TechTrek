@@ -33,10 +33,6 @@ def login():
 @app.route("/tranHist/<custID>")
 def view_transaction_history(custID):
 
-    request_data = request.json
-    custID = request_data['custID']
-    
-
     url = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/transaction/view"
 
     payload = {
@@ -44,8 +40,8 @@ def view_transaction_history(custID):
     }
 
     headers = {
-    'x-api-key': API_KEY,
-    'Content-Type': 'application/json'
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
     }
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
