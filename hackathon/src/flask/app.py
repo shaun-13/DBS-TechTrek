@@ -10,10 +10,11 @@ API_KEY = "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
 ### API Responses
 ###
 
-def get_response(status, data): {
-    "status": status, 
-    "data": data
-}
+def get_response(status, data):
+    return {
+        "status": status,
+        "data": data
+    }
 
 
 @app.route("/login", methods=["POST"])
@@ -33,8 +34,8 @@ def login():
     }
 
     headers = {
-    'x-api-key': API_KEY,
-    'Content-Type': 'application/json'
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
     }
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
@@ -44,7 +45,8 @@ def login():
 def get_balance(custID):
     API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/accounts/view"
     headers = {
-        "x-api-key": API_KEY
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
     }   
     body = {
         'custID': custID
@@ -69,14 +71,15 @@ def _get_linked_accounts(accounts):
     return linked_account
 
 
-def _call_balance_API(custID, new_amount):
+def _call_update_API(custID, new_amount):
     API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/accounts/update"
     headers = {
-        "x-api-key": API_KEY
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
     }
     body = {
         'custID': custID,
-        'Amount': new_amount
+        'amount': new_amount
     }
 
     response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
@@ -87,7 +90,8 @@ def _call_balance_API(custID, new_amount):
 def _call_add_transaction_API(**kwargs):
     API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/transaction/add"
     headers = {
-        "x-api-key": API_KEY
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json'
     }
     body = kwargs
 
@@ -97,35 +101,35 @@ def _call_add_transaction_API(**kwargs):
 
 
 @app.route("/pay/<myID>/<payeeID>/<amount>")
-def make_payment(myID, payeeID, amount, msg):
-    my_accounts = get_balance(myID)
+@app.route("/pay/<myID>/<payeeID>/<amount>/<msg>")
+def make_payment(myID, payeeID, amount, msg=""):
+    my_accounts = json.loads(get_balance(int(myID)))
     my_linked_account = _get_linked_accounts(my_accounts)
     my_original_balance = my_linked_account.get("availableBal")
-    my_new_balance = my_linked_account.get("availableBal") - amount
+    my_new_balance = my_linked_account.get("availableBal") - int(amount)
 
     # Return response if there is not enough money
     if my_new_balance < 0:
         return get_response(400, "Not Enough Money")
 
-    # To paye
-    payee_accounts = get_balance(payeeID)
+    # To payee
+    payee_accounts = json.loads(get_balance(int(payeeID)))
     payee_linked_account = _get_linked_accounts(payee_accounts)
-    payee_new_balance = payee_linked_account.get("availableBal") + amount
+    payee_new_balance = payee_linked_account.get("availableBal") + int(amount)
 
-    response = _call_balance_API(payeeID, payee_new_balance) 
+    response = _call_update_API(payeeID, payee_new_balance)
     if response.text != 'Successful transaction.':
         return get_response(500, "Unsuccessful transaction")
 
-    response = _call_balance_API(myID, my_new_balance)
+    response = _call_update_API(myID, my_new_balance)
     if response.text != 'Successful transaction.':
-
         # Revert to give the money back:
-        _call_balance_API(myID, my_original_balance)  
+        _call_update_API(myID, my_original_balance)  
         return get_response(500, "Unsuccessful transaction")
 
     # Lastly, create a transaction for both parties
-    today = date.today
-    response = _call_add_transaction_API(
+    today = date.today()s
+    _call_add_transaction_API(
         custID=myID,
         payeeID=payeeID,
         dateTime=today,
@@ -135,7 +139,7 @@ def make_payment(myID, payeeID, amount, msg):
         message=msg
     )
 
-    response = _call_add_transaction_API(
+    _call_add_transaction_API(
         custID=myID,
         payeeID=payeeID,
         dateTime=today,
