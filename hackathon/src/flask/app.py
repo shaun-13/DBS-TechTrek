@@ -1,6 +1,6 @@
 from flask import Flask, make_response, jsonify, request, json
 import requests
-from datetime import date
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -143,11 +143,11 @@ def make_payment(myID, payeeID, amount, msg=""):
     response = _call_update_API(myID, my_new_balance)
     if response.text != 'Successful transaction.':
         # Revert to give the money back:
-        _call_update_API(myID, my_original_balance)  
+        _call_update_API(myID, my_original_balance)
         return get_response(500, "Unsuccessful transaction")
 
     # Lastly, create a transaction for both parties
-    today = date.today()
+    today = datetime.now()
     _call_add_transaction_API(
         custID=myID,
         payeeID=payeeID,
@@ -178,7 +178,6 @@ def make_payment(myID, payeeID, amount, msg=""):
     return get_response(200, json.dumps(transaction_data))
 
 
-
 @app.route("/tranHist/<custID>")
 def view_transaction_history(custID):
 
@@ -195,8 +194,8 @@ def view_transaction_history(custID):
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
     response = json.loads(response.text)
-    return jsonify(response)
-    
+    return get_response(200, response)
+
 
 if __name__=='__main__':
     app.run(port=5002, debug=True)
