@@ -8,7 +8,7 @@ import { TransferComponent } from './transfer/transfer.component';
 const routes: Routes = [{ path: 'home', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'transfer', component: TransferComponent },
-  { path: '', redirectTo: 'home', pathMatch: 'full' }];
+  { path: '', redirectTo: 'login', pathMatch: 'full' }];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
