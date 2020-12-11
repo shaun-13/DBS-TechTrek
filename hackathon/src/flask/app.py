@@ -30,7 +30,7 @@ def login():
 def get_balance(custID):
     API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/accounts/view"
     headers = {
-        "x-api-key": "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
+        "x-api-key": API_KEY
     }   
     body = {
         'custID': custID
