@@ -18,7 +18,7 @@ def login():
     payload = {"username" : username, "password" : password}
 
     headers = {
-    'x-api-key': X_API_KEY,
+    'x-api-key': API_KEY,
     'Content-Type': 'application/json'
     }
 
