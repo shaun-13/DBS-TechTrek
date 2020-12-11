@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-X_API_KEY = "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
+API_KEY = "HgdRwVku2V1nD8yNuzaWPxco8RYB9HO8UpnJfIg6"
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -27,7 +27,7 @@ def login():
     print(response.text)
     return response.text
 
-
 if __name__=='__main__':
     app.run(port=5002, debug=True)
-    # app.run()
+    app.run()
+    
