@@ -15,7 +15,11 @@ def login():
     password = login_data['password']
 
     url = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/login"
-    payload = {"username" : username, "password" : password}
+
+    payload = {
+        "username" : username, 
+        "password" : password
+    }
 
     headers = {
     'x-api-key': API_KEY,
@@ -23,8 +27,6 @@ def login():
     }
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
-
-    print(response.text)
     return response.text
 
 if __name__=='__main__':
