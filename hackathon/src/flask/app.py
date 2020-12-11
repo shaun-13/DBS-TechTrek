@@ -28,6 +28,19 @@ def login():
 
     response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
     return response.text
+    
+@app.route("/balance/<custID>")
+def get_balance(custID):
+    API_ENDPOINT = "https://u8fpqfk2d4.execute-api.ap-southeast-1.amazonaws.com/techtrek2020/accounts/view"
+    headers = {
+        "x-api-key": API_KEY
+    }   
+    body = {
+        'custID': custID
+    }
+
+    response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
+    return response.text
 
 if __name__=='__main__':
     app.run(port=5002, debug=True)
