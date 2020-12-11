@@ -96,7 +96,6 @@ def _call_update_API(custID, new_amount):
     }
 
     response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
-    response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
 
@@ -115,12 +114,15 @@ def _call_add_transaction_API(**kwargs):
     body["amount"] = int(body["amount"])
 
     response = requests.request("POST", API_ENDPOINT, headers=headers, data=json.dumps(body))
-    response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
 
 @app.route("/pay/<myID>/<payeeID>/<amount>")
 def make_payment(myID, payeeID, amount, msg=""):
+
+    if int(amount) < 0:
+        get_response(400, "Amount to pay must not be negative!")  
+
     response = get_balance(myID)
     
     if (response['status'] != 200):
@@ -130,7 +132,8 @@ def make_payment(myID, payeeID, amount, msg=""):
     my_linked_account = _get_linked_accounts(my_accounts)
     my_original_balance = my_linked_account.get("availableBal")
     my_new_balance = my_linked_account.get("availableBal") - int(amount)
-    print(f"AAAAAAAA {my_original_balance}, {amount}, {my_new_balance}")
+
+    print(my_original_balance)
 
     # Return response if there is not enough money
     if my_new_balance < 0:
@@ -138,14 +141,15 @@ def make_payment(myID, payeeID, amount, msg=""):
 
     # To payee
     response = get_balance(payeeID)
-    
+
     if (response['status'] != 200):
-        get_response(400, "Invalid Payee ID") 
+        get_response(400, "Invalid Payee ID")
 
     payee_accounts = json.loads(response['data'])
     payee_linked_account = _get_linked_accounts(payee_accounts)
     payee_new_balance = payee_linked_account.get("availableBal") + int(amount)
 
+    '''
     response = _call_update_API(myID, my_new_balance)
     if response.text != 'Successful transaction.':
         return get_response(500, "Unsuccessful transaction")
@@ -155,6 +159,7 @@ def make_payment(myID, payeeID, amount, msg=""):
         # Revert to give the money back:
         _call_update_API(myID, my_original_balance)
         return get_response(500, "Unsuccessful transaction")
+    '''
 
     # Lastly, create a transaction for both parties
     today = datetime.now()
@@ -168,15 +173,7 @@ def make_payment(myID, payeeID, amount, msg=""):
         message=msg
     )
 
-    _call_add_transaction_API(
-        custID=payeeID,
-        payeeID=myID,
-        dateTime=today,
-        amount=f"-{amount}",
-        expensesCat="",
-        eGift=False,
-        message=msg
-    )
+    _call_update_API(payeeID, payee_new_balance) 
 
     transaction_data = {
         "custID": myID,
